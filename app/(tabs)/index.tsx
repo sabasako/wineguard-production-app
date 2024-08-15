@@ -3,13 +3,16 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "../../constants/Colors";
 import QvevriItem from "@/components/QvevriItem";
 import qvevrebiData from "@/data/qvevrebi.json";
+import { Link } from "expo-router";
 
 export default function Home() {
   return (
     <ScrollView>
       <View style={styles.titleWrapper}>
         <Text style={styles.title}>ქვევრები</Text>
-        <AntDesign name="plus" size={36} color="black" />
+        <Link href={"/addQvevri"}>
+          <AntDesign name="plus" size={36} color="black" />
+        </Link>
       </View>
       <View style={styles.qvevrebiWrapper}>
         {qvevrebiData.map((qvevri) => (
@@ -39,5 +42,6 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     paddingHorizontal: 10,
+    gap: 28,
   },
 });

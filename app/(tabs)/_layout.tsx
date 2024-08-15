@@ -1,10 +1,19 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import React from "react";
 import colors from "../../constants/Colors";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function TabLayout() {
+  const { authState } = useAuth();
+
+  console.log(authState);
+
+  if (!authState?.authenticated) {
+    return <Redirect href="/auth/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
@@ -28,6 +37,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
+          headerShown: true,
           title: "პარამეტრები",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
