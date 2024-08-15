@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   ScrollView,
   TextInput,
-  Button,
   StyleSheet,
   View,
   Alert,
@@ -15,14 +14,13 @@ import {
 import colors from "@/constants/Colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import { router } from "expo-router";
+import checkEmailPattern from "@/lib/checkEmailPattern";
 
 export default function PasswordReset() {
   const [email, setEmail] = useState("");
 
   const handleResetPassword = () => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (email && emailPattern.test(email)) {
+    if (email && checkEmailPattern(email)) {
       Alert.alert(
         "პაროლის აღდგენა",
         `პაროლის აღსადგენი ლინკი გაიგზავნა ${email.trim()} ელ ფოსტაზე`

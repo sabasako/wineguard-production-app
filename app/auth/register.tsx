@@ -1,25 +1,160 @@
 import {
-  Button,
+  ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import colors from "@/constants/Colors";
-import Entypo from "@expo/vector-icons/Entypo";
+import CustomInput from "@/components/auth/CustomInput";
 import { StatusBar } from "expo-status-bar";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import checkEmailPattern from "@/lib/checkEmailPattern";
+import { AuthError } from "@supabase/supabase-js";
 
 const windowWidth = Dimensions.get("window").width;
 
 export default function Login() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatedPassword, setRepeatedPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function signUpW2ithEmail() {
+    setLoading(true);
+    checkUserInputLocally();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          name: name,
+        },
+      },
+    });
+    checkServerResponse(error);
+    // If user is registered successfuly
+    if (session) {
+      // Alert.alert("გთხოვთ შეამოწმოთ ელ-ფოსტა ვერიფიკაციისთვის!");
+      Alert.alert(
+        "თქვენ წარმატებით დარეგისტრირდით!",
+        "გთხოვთ გაიაროთ ავტორიზაცია აპლიკაციაში შესვლისთვის"
+      );
+      // Navigates user to login screen, replace
+      router.push("/auth/login");
+    }
+    setLoading(false);
+  }
+  function checkUserInputLocally() {
+    if (!password || !email || !repeatedPassword || !name) {
+      Alert.alert("შეცდომა", "გთხოვთ შეავსოთ ყველა ველი");
+      setLoading(false);
+      return;
+    }
+    if (!checkEmailPattern(email)) {
+      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ რეალური ელ-ფოსტა");
+      setLoading(false);
+      return;
+    }
+    if (password !== repeatedPassword) {
+      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ ერთიდაიგივე პაროლი!");
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("შეცდომა", "პაროლი მინიმუმ 6 სიმბოლოსგან უნდა შედგებოდეს!");
+      setLoading(false);
+      return;
+    }
+  }
+  function checkServerResponse(error: AuthError | null) {
+    if (error) {
+      if (error.status === 0) {
+        Alert.alert("შეცდომა", "გთხოვთ შეამოწმოთ ინტერნეტთან კავშირი!");
+      } else if (
+        error.status === 422 &&
+        error.message === "User already registered"
+      ) {
+        Alert.alert("შეცდომა", "ასეთი მომხმარებელი უკვე არსებობს!");
+      } else {
+        Alert.alert(error.message);
+      }
+    }
+  }
+
+  async function signUpWithEmail() {
+    try {
+      setLoading(true);
+
+      // Check user input
+      validateUserInput();
+
+      // Attempt to sign up
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            name: name,
+          },
+        },
+      });
+
+      // Check for server errors
+      if (error) throw new Error(getErrorMessage(error));
+
+      // Handle successful sign up
+      if (data.session) {
+        Alert.alert("თქვენ წარმატებით დარეგისტრირდით!");
+        router.push("/");
+        // Alert.alert("გთხოვთ შეამოწმოთ ელ-ფოსტა ვერიფიკაციისთვის!");
+      }
+    } catch (error: any) {
+      Alert.alert("შეცდომა", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function validateUserInput() {
+    if (!password || !email || !repeatedPassword || !name) {
+      throw new Error("გთხოვთ შეავსოთ ყველა ველი");
+    }
+    if (!checkEmailPattern(email)) {
+      throw new Error("გთხოვთ შეიყვანოთ რეალური ელ-ფოსტა");
+    }
+    if (password !== repeatedPassword) {
+      throw new Error("გთხოვთ შეიყვანოთ ერთიდაიგივე პაროლი!");
+    }
+    if (password.length < 6) {
+      throw new Error("პაროლი მინიმუმ 6 სიმბოლოსგან უნდა შედგებოდეს!");
+    }
+  }
+
+  function getErrorMessage(error: AuthError): string {
+    if (error.status === 0) {
+      return "გთხოვთ შეამოწმოთ ინტერნეტთან კავშირი!";
+    } else if (
+      error.status === 422 &&
+      error.message === "User already registered"
+    ) {
+      return "ასეთი მომხმარებელი უკვე არსებობს!";
+    } else {
+      return error.message;
+    }
+  }
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar style="dark" />
@@ -44,56 +179,50 @@ export default function Login() {
             რეგისტრაცია
           </Text>
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="user" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="სახელი და გვარი"
-            />
-          </View>
+          <CustomInput
+            type="name"
+            onChangeText={(name) => setName(name)}
+            value={name}
+            placeholder="სახელი და გვარი"
+          />
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="mail" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="ელ-ფოსტა"
-            />
-          </View>
+          <CustomInput
+            value={email}
+            type="mail"
+            placeholder="ელ-ფოსტა"
+            onChangeText={(text) => setEmail(text)}
+          />
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="lock" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="პაროლი"
-              secureTextEntry={true}
-            />
-          </View>
+          <CustomInput
+            value={password}
+            type="password"
+            placeholder="პაროლი"
+            onChangeText={(text) => setPassword(text)}
+          />
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="lock" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="გაიმეორე პაროლი"
-              secureTextEntry={true}
-            />
-          </View>
+          <CustomInput
+            value={repeatedPassword}
+            type="password"
+            placeholder="გაიმეორეთ პაროლი"
+            onChangeText={(text) => setRepeatedPassword(text)}
+          />
 
-          <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={signUpWithEmail}
+            style={styles.button}
+            activeOpacity={0.8}
+          >
             <Text style={styles.buttonText}>რეგისტრაცია</Text>
           </TouchableOpacity>
 
-          {/* 
-        {loading && (
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-            style={styles.loading}
-          />
-        )} */}
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary}
+              style={styles.loading}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
 
@@ -140,7 +269,6 @@ const styles = StyleSheet.create({
     padding: 12,
     flex: 1,
     width: "100%",
-    // marginTop: 200,
   },
   title: {
     fontSize: 64,
@@ -148,23 +276,6 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: 20,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 12,
-    width: "100%",
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-  },
-  input: {
-    height: 48,
-    paddingVertical: 12,
-    flex: 1,
   },
   button: {
     padding: 12,

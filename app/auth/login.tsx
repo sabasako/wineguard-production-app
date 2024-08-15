@@ -1,35 +1,62 @@
 import {
-  Button,
+  ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import colors from "@/constants/Colors";
-import Entypo from "@expo/vector-icons/Entypo";
 import { StatusBar } from "expo-status-bar";
 import { Link, router } from "expo-router";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import CustomInput from "@/components/auth/CustomInput";
+import checkEmailPattern from "@/lib/checkEmailPattern";
 
 const windowWidth = Dimensions.get("window").width;
 
 export default function Login() {
-  const { onLogin, authState } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
-    if (onLogin) {
-      onLogin("email", "password");
-      router.replace("/");
-    } else {
-      console.error("onLogin function is not defined");
+  async function signInWithEmail() {
+    setLoading(true);
+
+    if (!email || !password) {
+      Alert.alert("შეცდომა", "გთხოვთ შეავსოთ ყველა ველი");
+      setLoading(false);
+      return;
     }
+
+    if (!checkEmailPattern(email)) {
+      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ რეალური ელ-ფოსტა");
+      setLoading(false);
+      return;
+    }
+
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      if (error.status === 400) {
+        Alert.alert("შეცდომა", "ელ-ფოსტა ან პაროლი არასწორია");
+      } else {
+        Alert.alert(error.message);
+      }
+    }
+    if (!error) {
+      router.replace("/");
+    }
+    setLoading(false);
   }
 
   return (
@@ -56,24 +83,19 @@ export default function Login() {
             ავტორიზაცია
           </Text>
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="mail" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="ელ-ფოსტა"
-            />
-          </View>
+          <CustomInput
+            value={email}
+            type="mail"
+            placeholder="ელ-ფოსტა"
+            onChangeText={(text) => setEmail(text)}
+          />
 
-          <View style={styles.inputWrapper}>
-            <Entypo name="lock" size={24} color={colors.primary} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor={colors.primary}
-              placeholder="პაროლი"
-              secureTextEntry={true}
-            />
-          </View>
+          <CustomInput
+            value={password}
+            type="password"
+            placeholder="პაროლი"
+            onChangeText={(text) => setPassword(text)}
+          />
 
           <Link
             href={"/auth/passwordReset"}
@@ -90,21 +112,21 @@ export default function Login() {
           </Link>
 
           <TouchableOpacity
-            onPress={handleLogin}
+            disabled={loading}
+            onPress={signInWithEmail}
             style={styles.button}
             activeOpacity={0.8}
           >
             <Text style={styles.buttonText}>შესვლა</Text>
           </TouchableOpacity>
 
-          {/* 
-        {loading && (
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-            style={styles.loading}
-          />
-        )} */}
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary}
+              style={styles.loading}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
 
@@ -158,23 +180,6 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: 20,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 12,
-    width: "100%",
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-  },
-  input: {
-    height: 48,
-    paddingVertical: 12,
-    flex: 1,
   },
   button: {
     padding: 12,

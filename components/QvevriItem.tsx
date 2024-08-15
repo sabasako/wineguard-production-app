@@ -1,6 +1,6 @@
 import { Link } from "expo-router";
 import colors from "../constants/Colors";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, Vibration, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useRef, useState } from "react";
 import {
@@ -28,7 +28,7 @@ export default function QvevriItem({
   const [deleteVisible, setDeleteVisible] = useState(false);
 
   if (deleteVisible) {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   }
 
   const toggleModal = () => {
@@ -41,9 +41,7 @@ export default function QvevriItem({
   };
 
   const renderRightActions = () => {
-    setTimeout(() => {
-      setDeleteVisible(true);
-    }, 300);
+    setDeleteVisible(true);
 
     return (
       <Animated.View style={[styles.deleteButtonContainer]}>

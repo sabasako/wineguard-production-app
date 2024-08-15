@@ -1,18 +1,27 @@
-import { Redirect, Tabs } from "expo-router";
-import React from "react";
+import { Redirect, router, Tabs } from "expo-router";
+import React, { useEffect, useState } from "react";
 import colors from "../../constants/Colors";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { useAuth } from "@/contexts/AuthContext";
+import { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export default function TabLayout() {
-  const { authState } = useAuth();
+  const [session, setSession] = useState<Session | null>(null);
 
-  console.log(authState);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.replace("/auth/login");
+      }
+    });
 
-  if (!authState?.authenticated) {
-    return <Redirect href="/auth/login" />;
-  }
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace("/auth/login");
+      }
+    });
+  }, []);
 
   return (
     <Tabs
