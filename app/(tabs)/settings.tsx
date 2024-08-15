@@ -1,242 +1,131 @@
-// import {
-//   ScrollView,
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   View,
-// } from "react-native";
-// import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-// import EvilIcons from "@expo/vector-icons/EvilIcons";
-// import colors from "@/constants/Colors";
-// import Entypo from "@expo/vector-icons/Entypo";
-// import { Link, router } from "expo-router";
-// import { useAuth } from "@/contexts/AuthContext";
-
-// export default function Settings() {
-//   const { onLogout } = useAuth();
-
-//   function handleLogout() {
-//     if (onLogout) {
-//       onLogout();
-//       router.replace("/auth/login");
-//     } else {
-//       console.error("onLogout function is not defined");
-//     }
-//   }
-
-//   return (
-//     <ScrollView style={styles.container}>
-//       <View style={styles.profileWrapper}>
-//         <EvilIcons name="user" size={104} color={"red"} />
-//         <View>
-//           <Text
-//             numberOfLines={1}
-//             ellipsizeMode="tail"
-//             style={{ fontWeight: "bold", fontSize: 20 }}
-//           >
-//             ირაკლი გამსახურდია
-//           </Text>
-//           <Text style={{ color: "gray", fontSize: 14, marginTop: 3 }}>
-//             irakli.gamsakhurdia@gmail.com
-//           </Text>
-//         </View>
-//       </View>
-
-//       <View
-//         style={{
-//           display: "flex",
-//           flexDirection: "row",
-//           gap: 24,
-//           alignItems: "center",
-//           marginTop: 24,
-//         }}
-//       >
-//         <Entypo name="help" size={24} color="gray" />
-//         <Link
-//           href={"https://www.wineguard.ge/"}
-//           style={{
-//             fontSize: 22,
-//             fontWeight: "bold",
-//             color: "gray",
-//           }}
-//         >
-//           დახმარება
-//         </Link>
-//       </View>
-
-//       <TouchableOpacity
-//         onPress={handleLogout}
-//         style={{
-//           flexDirection: "row",
-//           gap: 24,
-//           alignItems: "center",
-//           marginTop: 24,
-//         }}
-//       >
-//         <MaterialIcons name="logout" size={30} color="red" />
-//         <Text
-//           style={{
-//             fontSize: 22,
-//             fontWeight: "bold",
-//             color: "red",
-//           }}
-//         >
-//           გამოსვლა
-//         </Text>
-//       </TouchableOpacity>
-//     </ScrollView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     paddingHorizontal: 32,
-//     backgroundColor: "white",
-//   },
-//   profileWrapper: {
-//     marginTop: 32,
-//     paddingVertical: 4,
-//     paddingHorizontal: 2,
-//     alignContent: "center",
-//     borderColor: "rgba(0, 0, 0, 0.1)",
-//     borderWidth: 2,
-//     borderRadius: 10,
-//     flexDirection: "row",
-//     gap: 8,
-//     justifyContent: "flex-start",
-//     alignItems: "center",
-//   },
-// });
-
-import { useState, useEffect } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
+import colors from "@/constants/Colors";
+import Entypo from "@expo/vector-icons/Entypo";
+import { Link, router } from "expo-router";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { StyleSheet, View, Alert } from "react-native";
-import { Button, Input } from "@rneui/themed";
-import { Session } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
+import { Session, User } from "@supabase/supabase-js";
 
-export default function Account({ session }: { session: Session }) {
+export default function Settings({ session }: { session: Session }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState("");
-  const [website, setWebsite] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
-    if (session) getProfile();
-  }, [session]);
-
-  async function getProfile() {
-    try {
-      setLoading(true);
-      if (!session?.user)
-        throw new Error("გთხოვთ თავიდან შეხვიდეთ აპლიკაციაში!");
-
-      const { data, error, status } = await supabase
-        .from("profiles")
-        .select(`username, website, avatar_url`)
-        .eq("id", session?.user.id)
-        .single();
-      if (error && status !== 406) {
-        throw error;
+    setLoading(false);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser(user);
+      } else {
+        Alert.alert("Error Accessing User");
       }
-
-      if (data) {
-        setUsername(data.username);
-        setWebsite(data.website);
-        setAvatarUrl(data.avatar_url);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateProfile({
-    username,
-    website,
-    avatar_url,
-  }: {
-    username: string;
-    website: string;
-    avatar_url: string;
-  }) {
-    try {
-      setLoading(true);
-      if (!session?.user)
-        throw new Error("მომხმარებელი ამ სესიაზე მიუწვდომელია!!");
-
-      const updates = {
-        id: session?.user.id,
-        username,
-        website,
-        avatar_url,
-        updated_at: new Date(),
-      };
-
-      const { error } = await supabase.from("profiles").upsert(updates);
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+    });
+    setLoading(false);
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input label="Email" value={session?.user?.email} disabled />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input
-          label="Username"
-          value={username || ""}
-          onChangeText={(text) => setUsername(text)}
+    <ScrollView style={styles.container}>
+      <View style={styles.profileWrapper}>
+        <EvilIcons
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            transform: [{ translateY: Platform.OS === "android" ? -10 : 0 }],
+          }}
+          name="user"
+          size={104}
+          color={"red"}
         />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input
-          label="Website"
-          value={website || ""}
-          onChangeText={(text) => setWebsite(text)}
-        />
+        <View>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ fontWeight: "bold", fontSize: 20 }}
+          >
+            {user?.user_metadata?.name || "სახელი გვარი"}
+          </Text>
+          <Text style={{ color: "gray", fontSize: 14, marginTop: 3 }}>
+            {user?.user_metadata?.email || "ელ. ფოსტა"}
+          </Text>
+        </View>
       </View>
 
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title={loading ? "Loading ..." : "Update"}
-          onPress={() =>
-            updateProfile({ username, website, avatar_url: avatarUrl })
-          }
-          disabled={loading}
-        />
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 24,
+          alignItems: "center",
+          marginTop: 24,
+        }}
+      >
+        <Entypo name="help" size={24} color="gray" />
+        <Link
+          href={"https://www.wineguard.ge/"}
+          style={{
+            fontSize: 22,
+            fontWeight: "bold",
+            color: "gray",
+          }}
+        >
+          დახმარება
+        </Link>
       </View>
 
-      <View style={styles.verticallySpaced}>
-        <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
-      </View>
-    </View>
+      <TouchableOpacity
+        onPress={() => supabase.auth.signOut()}
+        style={{
+          flexDirection: "row",
+          gap: 24,
+          alignItems: "center",
+          marginTop: 24,
+        }}
+        activeOpacity={0.6}
+      >
+        <MaterialIcons name="logout" size={30} color="red" />
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: "bold",
+            color: "red",
+          }}
+        >
+          გამოსვლა
+        </Text>
+      </TouchableOpacity>
+      {loading && <ActivityIndicator size="large" color={colors.primary} />}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
-    padding: 12,
+    paddingHorizontal: 32,
+    backgroundColor: "white",
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: "stretch",
-  },
-  mt20: {
-    marginTop: 20,
+  profileWrapper: {
+    marginTop: 32,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    alignContent: "center",
+    borderColor: "rgba(0, 0, 0, 0.1)",
+    borderWidth: 2,
+    borderRadius: 10,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "flex-start",
+    alignItems: "center",
   },
 });

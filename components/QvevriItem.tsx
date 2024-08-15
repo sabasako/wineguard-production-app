@@ -27,10 +27,6 @@ export default function QvevriItem({
   const [isModalVisible, setModalVisible] = useState(false);
   const [deleteVisible, setDeleteVisible] = useState(false);
 
-  if (deleteVisible) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  }
-
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
@@ -40,9 +36,11 @@ export default function QvevriItem({
     console.log("წაიშალა");
   };
 
-  const renderRightActions = () => {
-    setDeleteVisible(true);
+  const onSwipeableOpen = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  };
 
+  const renderRightActions = () => {
     return (
       <Animated.View style={[styles.deleteButtonContainer]}>
         <RectButton style={styles.deleteButton} onPress={toggleModal}>
@@ -56,7 +54,7 @@ export default function QvevriItem({
     <GestureHandlerRootView>
       <Swipeable
         renderRightActions={renderRightActions}
-        onSwipeableWillOpen={() => setDeleteVisible(false)}
+        onSwipeableOpen={onSwipeableOpen}
       >
         <Link href={`/qvevri/${id}`} style={styles.container}>
           <View style={styles.textCont}>
