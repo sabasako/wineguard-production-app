@@ -29,71 +29,6 @@ export default function Login() {
   const [repeatedPassword, setRepeatedPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function signUpW2ithEmail() {
-    setLoading(true);
-    checkUserInputLocally();
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          name: name,
-        },
-      },
-    });
-    checkServerResponse(error);
-    // If user is registered successfuly
-    if (session) {
-      // Alert.alert("გთხოვთ შეამოწმოთ ელ-ფოსტა ვერიფიკაციისთვის!");
-      Alert.alert(
-        "თქვენ წარმატებით დარეგისტრირდით!",
-        "გთხოვთ გაიაროთ ავტორიზაცია აპლიკაციაში შესვლისთვის"
-      );
-      // Navigates user to login screen, replace
-      router.push("/auth/login");
-    }
-    setLoading(false);
-  }
-  function checkUserInputLocally() {
-    if (!password || !email || !repeatedPassword || !name) {
-      Alert.alert("შეცდომა", "გთხოვთ შეავსოთ ყველა ველი");
-      setLoading(false);
-      return;
-    }
-    if (!checkEmailPattern(email)) {
-      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ რეალური ელ-ფოსტა");
-      setLoading(false);
-      return;
-    }
-    if (password !== repeatedPassword) {
-      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ ერთიდაიგივე პაროლი!");
-      setLoading(false);
-      return;
-    }
-    if (password.length < 6) {
-      Alert.alert("შეცდომა", "პაროლი მინიმუმ 6 სიმბოლოსგან უნდა შედგებოდეს!");
-      setLoading(false);
-      return;
-    }
-  }
-  function checkServerResponse(error: AuthError | null) {
-    if (error) {
-      if (error.status === 0) {
-        Alert.alert("შეცდომა", "გთხოვთ შეამოწმოთ ინტერნეტთან კავშირი!");
-      } else if (
-        error.status === 422 &&
-        error.message === "User already registered"
-      ) {
-        Alert.alert("შეცდომა", "ასეთი მომხმარებელი უკვე არსებობს!");
-      } else {
-        Alert.alert(error.message);
-      }
-    }
-  }
-
   async function signUpWithEmail() {
     try {
       setLoading(true);
@@ -116,10 +51,10 @@ export default function Login() {
       if (error) throw new Error(getErrorMessage(error));
 
       // Handle successful sign up
-      if (data.session) {
-        Alert.alert("თქვენ წარმატებით დარეგისტრირდით!");
-        router.push("/");
-        // Alert.alert("გთხოვთ შეამოწმოთ ელ-ფოსტა ვერიფიკაციისთვის!");
+      if (data.user) {
+        // Alert.alert("თქვენ წარმატებით დარეგისტრირდით!");
+        Alert.alert("გთხოვთ შეამოწმოთ ელ-ფოსტა ვერიფიკაციისთვის!");
+        router.push("/auth/login");
       }
     } catch (error: any) {
       Alert.alert("შეცდომა", error.message);

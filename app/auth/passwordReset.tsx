@@ -10,22 +10,36 @@ import {
   Text,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import colors from "@/constants/Colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import { router } from "expo-router";
 import checkEmailPattern from "@/lib/checkEmailPattern";
+import { supabase } from "@/lib/supabase";
 
 export default function PasswordReset() {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleResetPassword = () => {
-    if (email && checkEmailPattern(email)) {
-      Alert.alert(
-        "პაროლის აღდგენა",
-        `პაროლის აღსადგენი ლინკი გაიგზავნა ${email.trim()} ელ ფოსტაზე`
-      );
-      router.push("/auth/login");
+  const handleResetPassword = async () => {
+    if (email && checkEmailPattern(email.trim())) {
+      setLoading(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          email.trim()
+        );
+        if (error) throw error;
+        Alert.alert(
+          "პაროლის აღდგენა",
+          `პაროლის აღსადგენი ლინკი გაიგზავნა ${email.trim()} ელ ფოსტაზე`
+        );
+        router.push("/auth/login");
+      } catch (error: any) {
+        Alert.alert("შეცდომა", error.message);
+      } finally {
+        setLoading(false);
+      }
     } else if (!email) {
       Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ ელ-ფოსტა");
     } else {
@@ -71,9 +85,18 @@ export default function PasswordReset() {
           activeOpacity={0.8}
           style={styles.button}
           onPress={handleResetPassword}
+          disabled={loading}
         >
           <Text style={styles.buttonText}>დადასტურება</Text>
         </TouchableOpacity>
+
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loading}
+          />
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -120,5 +143,8 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     textAlign: "center",
+  },
+  loading: {
+    marginTop: 20,
   },
 });

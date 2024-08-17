@@ -48,15 +48,11 @@ export default function Settings({ session }: { session: Session }) {
           size={104}
           color={"red"}
         />
-        <View>
-          <Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={{ fontWeight: "bold", fontSize: 20 }}
-          >
+        <View style={styles.textContainer}>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.nameText}>
             {user?.user_metadata?.name || "სახელი გვარი"}
           </Text>
-          <Text style={{ color: "gray", fontSize: 14, marginTop: 3 }}>
+          <Text style={styles.emailText}>
             {user?.user_metadata?.email || "ელ. ფოსტა"}
           </Text>
         </View>
@@ -127,5 +123,19 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: "flex-start",
     alignItems: "center",
+  },
+  textContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  nameText: {
+    fontWeight: "bold",
+    fontSize: 20,
+    flexShrink: 1,
+  },
+  emailText: {
+    color: "gray",
+    fontSize: 14,
+    marginTop: 3,
   },
 });
