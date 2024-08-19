@@ -53,7 +53,10 @@ export default function PasswordReset() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       enabled
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         <Image
           source={require("../../assets/images/logo.png")}
           style={{ width: 155, height: 188 }}

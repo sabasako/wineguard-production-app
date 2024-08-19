@@ -19,6 +19,8 @@ import { supabase } from "@/lib/supabase";
 import CustomInput from "@/components/auth/CustomInput";
 import checkEmailPattern from "@/lib/checkEmailPattern";
 
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 const windowWidth = Dimensions.get("window").width;
 
 export default function Login() {
@@ -60,75 +62,72 @@ export default function Login() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        enabled
-      >
-        <View style={styles.main}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={{ width: 155, height: 188 }}
+      <View style={styles.main}>
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={{ width: 155, height: 188 }}
+        />
+        <Text
+          style={{
+            fontSize: 32,
+            color: colors.primary,
+            marginVertical: 24,
+            fontWeight: "bold",
+          }}
+        >
+          ავტორიზაცია
+        </Text>
+
+        <CustomInput
+          value={email}
+          type="mail"
+          placeholder="ელ-ფოსტა"
+          onChangeText={(text) => setEmail(text)}
+        />
+
+        <CustomInput
+          value={password}
+          type="password"
+          placeholder="პაროლი"
+          onChangeText={(text) => setPassword(text)}
+        />
+
+        <Link
+          href={"/auth/passwordReset"}
+          style={{
+            fontSize: 14,
+            color: colors.primary,
+            marginVertical: 6,
+            marginBottom: 20,
+            marginLeft: "auto",
+            fontWeight: "bold",
+          }}
+        >
+          დაგავიწყდა პაროლი?
+        </Link>
+
+        <TouchableOpacity
+          disabled={loading}
+          onPress={signInWithEmail}
+          style={styles.button}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>შესვლა</Text>
+        </TouchableOpacity>
+
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loading}
           />
-          <Text
-            style={{
-              fontSize: 32,
-              color: colors.primary,
-              marginVertical: 24,
-              fontWeight: "bold",
-            }}
-          >
-            ავტორიზაცია
-          </Text>
-
-          <CustomInput
-            value={email}
-            type="mail"
-            placeholder="ელ-ფოსტა"
-            onChangeText={(text) => setEmail(text)}
-          />
-
-          <CustomInput
-            value={password}
-            type="password"
-            placeholder="პაროლი"
-            onChangeText={(text) => setPassword(text)}
-          />
-
-          <Link
-            href={"/auth/passwordReset"}
-            style={{
-              fontSize: 14,
-              color: colors.primary,
-              marginVertical: 6,
-              marginBottom: 20,
-              marginLeft: "auto",
-              fontWeight: "bold",
-            }}
-          >
-            დაგავიწყდა პაროლი?
-          </Link>
-
-          <TouchableOpacity
-            disabled={loading}
-            onPress={signInWithEmail}
-            style={styles.button}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>შესვლა</Text>
-          </TouchableOpacity>
-
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color={colors.primary}
-              style={styles.loading}
-            />
-          )}
-        </View>
-      </KeyboardAvoidingView>
+        )}
+      </View>
 
       <Text
         style={{
@@ -153,7 +152,7 @@ export default function Login() {
       >
         გაირე რეგისტრაცია
       </Link>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

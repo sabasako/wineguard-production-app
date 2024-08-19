@@ -19,6 +19,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import checkEmailPattern from "@/lib/checkEmailPattern";
 import { AuthError } from "@supabase/supabase-js";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -91,81 +92,78 @@ export default function Login() {
     }
   }
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        enabled
-      >
-        <View style={styles.main}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={{ width: 155, height: 188 }}
+      <View style={styles.main}>
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={{ width: 155, height: 188 }}
+        />
+        <Text
+          style={{
+            fontSize: 32,
+            color: colors.primary,
+            marginVertical: 24,
+            fontWeight: "bold",
+          }}
+        >
+          რეგისტრაცია
+        </Text>
+
+        <CustomInput
+          type="name"
+          onChangeText={(name) => setName(name)}
+          value={name}
+          placeholder="სახელი და გვარი"
+        />
+
+        <CustomInput
+          value={email}
+          type="mail"
+          placeholder="ელ-ფოსტა"
+          onChangeText={(text) => setEmail(text)}
+        />
+
+        <CustomInput
+          value={password}
+          type="password"
+          placeholder="პაროლი"
+          onChangeText={(text) => setPassword(text)}
+        />
+
+        <CustomInput
+          value={repeatedPassword}
+          type="password"
+          placeholder="გაიმეორეთ პაროლი"
+          onChangeText={(text) => setRepeatedPassword(text)}
+        />
+
+        <TouchableOpacity
+          disabled={loading}
+          onPress={signUpWithEmail}
+          style={styles.button}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>რეგისტრაცია</Text>
+        </TouchableOpacity>
+
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loading}
           />
-          <Text
-            style={{
-              fontSize: 32,
-              color: colors.primary,
-              marginVertical: 24,
-              fontWeight: "bold",
-            }}
-          >
-            რეგისტრაცია
-          </Text>
-
-          <CustomInput
-            type="name"
-            onChangeText={(name) => setName(name)}
-            value={name}
-            placeholder="სახელი და გვარი"
-          />
-
-          <CustomInput
-            value={email}
-            type="mail"
-            placeholder="ელ-ფოსტა"
-            onChangeText={(text) => setEmail(text)}
-          />
-
-          <CustomInput
-            value={password}
-            type="password"
-            placeholder="პაროლი"
-            onChangeText={(text) => setPassword(text)}
-          />
-
-          <CustomInput
-            value={repeatedPassword}
-            type="password"
-            placeholder="გაიმეორეთ პაროლი"
-            onChangeText={(text) => setRepeatedPassword(text)}
-          />
-
-          <TouchableOpacity
-            disabled={loading}
-            onPress={signUpWithEmail}
-            style={styles.button}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>რეგისტრაცია</Text>
-          </TouchableOpacity>
-
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color={colors.primary}
-              style={styles.loading}
-            />
-          )}
-        </View>
-      </KeyboardAvoidingView>
+        )}
+      </View>
 
       <Text
         style={{
           fontSize: 14,
           color: colors.text,
-          marginBottom: 40,
+          marginBottom: 56,
           marginTop: "auto",
           fontWeight: "bold",
         }}
@@ -177,15 +175,13 @@ export default function Login() {
         style={{
           fontSize: 14,
           color: colors.primary,
-          marginBottom: 40,
-          marginTop: 16,
           fontWeight: "bold",
         }}
         href={"/auth/login"}
       >
         გაირე ავტორიზაცია
       </Link>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -195,7 +191,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 24,
     justifyContent: "center",
+    flexGrow: 1,
     alignItems: "center",
+    paddingBottom: 40,
   },
   main: {
     justifyContent: "center",
