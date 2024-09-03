@@ -4,8 +4,11 @@ import colors from "../../constants/Colors";
 import QvevriItem from "@/components/QvevriItem";
 import qvevrebiData from "@/data/qvevrebi.json";
 import { Link } from "expo-router";
+import useGetAllQvevri from "@/hooks/useGetAllQvevri";
 
 export default function Home() {
+  const { loading } = useGetAllQvevri();
+
   return (
     <ScrollView>
       <View style={styles.titleWrapper}>

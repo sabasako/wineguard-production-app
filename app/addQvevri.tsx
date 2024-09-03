@@ -20,7 +20,16 @@ export default function Page({ changeScreen }: { changeScreen: any }) {
   const [id, setId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  async function handleSubmit() {
+    try {
+      const res = fetch(
+        "https://fatclvqrybgbpaxhbiln.supabase.co/rest/v1/qvevrebi_users"
+      );
+    } catch (err) {
+    } finally {
+      setLoading(false);
+    }
+
     if (id === "") {
       Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ აიდი");
       return;
@@ -31,7 +40,7 @@ export default function Page({ changeScreen }: { changeScreen: any }) {
       setLoading(false);
       Alert.alert("ასეთი მოწყობილება არ არსებობს", `აიდი: "${id}" არ მოიძებნა`);
     }, 2000);
-  };
+  }
 
   return (
     <KeyboardAvoidingView

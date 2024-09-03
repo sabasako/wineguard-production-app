@@ -2,7 +2,7 @@
   {
     "title": "ქვევრი 200L",
     "active": true,
-    "id": "sa1oD12",
+    "id": "1235",
     "pressure": 0.3,
     "nh3": 0.532,
     "co": 1.295,
@@ -12,7 +12,7 @@
   {
     "title": "ქვევრი 500L",
     "active": false,
-    "id": "fwmeklF14",
+    "id": "1234",
     "pressure": 0.8,
     "nh3": 0.132,
     "co": 1.695,
