@@ -10,12 +10,14 @@ import {
 import Modal from "react-native-modal";
 import Animated from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import useDeleteQvevri from "@/hooks/useDeleteQvevri";
 
 interface QvevriTitleProps {
   title: string;
   active: boolean;
   pressure: number;
   id: string;
+  onDelete: () => void;
 }
 
 export default function QvevriItem({
@@ -23,17 +25,19 @@ export default function QvevriItem({
   active,
   pressure,
   id,
+  onDelete,
 }: QvevriTitleProps) {
   const [isModalVisible, setModalVisible] = useState(false);
-  const [deleteVisible, setDeleteVisible] = useState(false);
+  const { deleteQvevri, loading } = useDeleteQvevri();
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setModalVisible(false);
-    console.log("წაიშალა");
+    await deleteQvevri(id);
+    onDelete();
   };
 
   const onSwipeableOpen = () => {
@@ -80,7 +84,7 @@ export default function QvevriItem({
                 }}
               />
               <Text style={styles.subtext}>
-                {active ? "ჩართული" : "გამორთული"}
+                {active ? "ოპტიმალური" : "არაოპტიმალური"}
               </Text>
             </View>
             <Text style={styles.title}>
@@ -110,13 +114,16 @@ export default function QvevriItem({
         backdropTransitionOutTiming={0}
       >
         <View style={styles.modalContent}>
-          <Text>დარწმუნებული ხართ, რომ "{title}"-ის წაშლა გსურთ?</Text>
+          <Text style={styles.modalHeading}>დადასტურება</Text>
+          <Text style={styles.modalText}>
+            დარწმუნებული ხართ, რომ "{title}"-ის წაშლა გსურთ?
+          </Text>
           <View style={styles.modalButtons}>
-            <Text style={styles.modalButton} onPress={handleDelete}>
-              კი
-            </Text>
-            <Text style={styles.modalButton} onPress={toggleModal}>
+            <Text style={styles.noButton} onPress={toggleModal}>
               არა
+            </Text>
+            <Text style={styles.yesButton} onPress={handleDelete}>
+              კი, წაშალე!
             </Text>
           </View>
         </View>
@@ -165,8 +172,6 @@ const styles = StyleSheet.create({
   pressureWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    // position: "absolute",
-    // right: 0,
     gap: 5,
   },
   deleteButtonContainer: {
@@ -189,20 +194,48 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "white",
-    padding: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
+    paddingTop: 22,
+    borderRadius: 6,
+  },
+  modalHeading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 12,
+    textAlign: "left",
+    color: "#6f6f6f",
+    paddingHorizontal: 20,
+  },
+  modalText: {
+    fontSize: 18,
+    color: "#6f6f6f",
+    paddingHorizontal: 20,
   },
   modalButtons: {
     flexDirection: "row",
     marginTop: 20,
+    width: "100%",
+    justifyContent: "flex-end",
+    backgroundColor: "#ecf0f1",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    gap: 10,
   },
-  modalButton: {
-    marginHorizontal: 10,
+  yesButton: {
+    backgroundColor: "#dc2626",
     fontSize: 18,
-    fontWeight: "bold",
-    color: colors.primary,
+    color: "#fff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  noButton: {
+    backgroundColor: "#adc1c6",
+    fontSize: 18,
+    color: "#fff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
   },
   statusContainer: {
     borderRadius: 16,

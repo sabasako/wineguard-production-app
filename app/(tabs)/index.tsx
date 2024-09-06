@@ -1,13 +1,24 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import colors from "../../constants/Colors";
 import QvevriItem from "@/components/QvevriItem";
-import qvevrebiData from "@/data/qvevrebi.json";
 import { Link } from "expo-router";
 import useGetAllQvevri from "@/hooks/useGetAllQvevri";
+import { useState } from "react";
 
 export default function Home() {
-  const { loading } = useGetAllQvevri();
+  const [refresh, setRefresh] = useState(false);
+  const { loading, qvevrebi } = useGetAllQvevri(refresh);
+
+  const handleRefresh = () => {
+    setRefresh((prev) => !prev);
+  };
 
   return (
     <ScrollView>
@@ -18,8 +29,23 @@ export default function Home() {
         </Link>
       </View>
       <View style={styles.qvevrebiWrapper}>
-        {qvevrebiData.map((qvevri) => (
-          <QvevriItem {...qvevri} key={qvevri.id} />
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={{ marginTop: 144 }}
+          />
+        )}
+
+        {qvevrebi.map((qvevri) => (
+          <QvevriItem
+            key={qvevri.qvevri_id}
+            active={qvevri.active}
+            id={qvevri.qvevri_id}
+            pressure={qvevri.no2}
+            title={qvevri.title}
+            onDelete={handleRefresh}
+          />
         ))}
       </View>
     </ScrollView>

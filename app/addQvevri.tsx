@@ -15,31 +15,19 @@ import {
   View,
 } from "react-native";
 import colors from "../constants/Colors";
+import useAddQvevri from "@/hooks/useAddQvevri";
+import { router } from "expo-router";
 
-export default function Page({ changeScreen }: { changeScreen: any }) {
+export default function Page() {
   const [id, setId] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { handleAddQvevri, loading } = useAddQvevri();
 
   async function handleSubmit() {
-    try {
-      const res = fetch(
-        "https://fatclvqrybgbpaxhbiln.supabase.co/rest/v1/qvevrebi_users"
-      );
-    } catch (err) {
-    } finally {
-      setLoading(false);
+    const success = await handleAddQvevri(id.trim());
+    if (success) {
+      setId("");
+      router.push("/");
     }
-
-    if (id === "") {
-      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ აიდი");
-      return;
-    }
-
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert("ასეთი მოწყობილება არ არსებობს", `აიდი: "${id}" არ მოიძებნა`);
-    }, 2000);
   }
 
   return (

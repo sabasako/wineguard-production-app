@@ -2,69 +2,69 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-export default function useGetAllQvevri() {
+type qvevriType = {
+  qvevri_id: string;
+  title: string;
+  active: boolean;
+  co2: number;
+  no2: number;
+  created_at: string;
+};
+
+export default function useGetAllQvevri(refresh: boolean) {
   const [loading, setLoading] = useState(false);
+  const [qvevrebi, setQvevrebi] = useState<qvevriType[]>([]);
 
   useEffect(() => {
     async function fetchQvevrebi() {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // Postgre has policy to only allow users to see their own qvevrebi, so we don't need to get user id and then filter, data will already be filtered
 
-        if (!user) {
-          Alert.alert("შეცდომა", "მომხმარებელი ვერ მოიძებნა");
-          return;
-        }
+        // const {
+        //   data: { user },
+        // } = await supabase.auth.getUser();
 
-        const { error, data, statusText } = await supabase
+        // if (!user) {
+        //   Alert.alert("შეცდომა", "მომხმარებელი ვერ მოიძებნა");
+        //   return;
+        // }
+
+        const { error: qvevriError, data: qvevriData } = await supabase
           .from("qvevrebi_users")
-          .select("*");
-        // .eq("user_id", user.id);
+          .select("qvevri_id");
 
-        if (error) {
-          throw new Error(error.message);
+        if (qvevriError) {
+          throw new Error(qvevriError.message);
         }
 
-        console.log("ქვევრის მონაცემები", data);
-        console.log("statys", statusText);
+        if (qvevriData.length === 0) {
+          return; // No qvevri_ids found, exit early
+        }
+
+        // Extract qvevri_ids into an array
+        const qvevriIds = qvevriData.map((qvevri) => qvevri.qvevri_id);
+
+        const { error: qvevriDataError, data: qvevriDataResult } =
+          await supabase
+            .from("qvevrebi_data")
+            .select("*")
+            .in("qvevri_id", qvevriIds);
+
+        if (qvevriDataError) {
+          throw new Error(qvevriDataError.message);
+        }
+
+        setQvevrebi(qvevriDataResult);
       } catch (err: any) {
         Alert.alert("შეცდომა", "რაღაც არასწორად წავიდა");
-        console.log(err.message);
+        console.error(err.message);
       } finally {
         setLoading(false);
       }
     }
-  }, []);
 
-  useEffect(() => {
-    const apiUrl =
-      "https://fatclvqrybgbpaxhbiln.supabase.co/rest/v1/qvevrebi_users";
-    const userId = "8afb601d-540c-4fc5-b508-ee14715e40b6";
-    const apiKey =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdGNsdnFyeWJnYnBheGhiaWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjM3MTEyNzQsImV4cCI6MjAzOTI4NzI3NH0.70N2s9rTlQMI8YvGPiCv1mTttCwDr_IlPSDV-RMDURo";
+    fetchQvevrebi();
+  }, [refresh]);
 
-    fetch(`${apiUrl}?user_id=eq.${userId}`, {
-      method: "GET",
-      headers: {
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Data received:", data);
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
-  });
-
-  return { loading };
+  return { loading, qvevrebi };
 }

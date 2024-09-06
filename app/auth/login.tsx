@@ -349,7 +349,7 @@ export default function Login() {
     }
 
     const { error, data } = await supabase.auth.signInWithPassword({
-      email: email,
+      email: email.trim(),
       password: password,
     });
 

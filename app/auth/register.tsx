@@ -39,11 +39,11 @@ export default function Login() {
 
       // Attempt to sign up
       const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
+        email: email.trim(),
+        password: password.trim(),
         options: {
           data: {
-            name: name,
+            name: name.trim(),
           },
         },
       });
