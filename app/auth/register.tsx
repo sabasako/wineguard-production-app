@@ -8,27 +8,34 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import colors from "@/constants/Colors";
-import CustomInput from "@/components/auth/CustomInput";
+import { CustomInput } from "@/components/auth/CustomInput";
 import { StatusBar } from "expo-status-bar";
 import { Link, router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import checkEmailPattern from "@/lib/checkEmailPattern";
 import { AuthError } from "@supabase/supabase-js";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import useKeyboard from "@/hooks/useKeyboard";
 
 const windowWidth = Dimensions.get("window").width;
 
-export default function Login() {
+export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatedPassword, setRepeatedPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isKeyboardVisible } = useKeyboard();
+
+  const emailInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInput>(null);
+  const repeatedPasswordInputRef = useRef<TextInput>(null);
 
   async function signUpWithEmail() {
     try {
@@ -118,23 +125,33 @@ export default function Login() {
           onChangeText={(name) => setName(name)}
           value={name}
           placeholder="სახელი და გვარი"
+          returnKeyType="next"
+          onSubmitEditing={() => emailInputRef.current?.focus()}
         />
 
         <CustomInput
+          ref={emailInputRef}
+          onSubmitEditing={() => passwordInputRef.current?.focus()}
           value={email}
           type="mail"
           placeholder="ელ-ფოსტა"
           onChangeText={(text) => setEmail(text)}
+          returnKeyType="next"
         />
 
         <CustomInput
           value={password}
+          ref={passwordInputRef}
+          onSubmitEditing={() => repeatedPasswordInputRef.current?.focus()}
           type="password"
           placeholder="პაროლი"
           onChangeText={(text) => setPassword(text)}
+          returnKeyType="next"
         />
 
         <CustomInput
+          ref={repeatedPasswordInputRef}
+          onSubmitEditing={signUpWithEmail}
           value={repeatedPassword}
           type="password"
           placeholder="გაიმეორეთ პაროლი"
@@ -159,28 +176,32 @@ export default function Login() {
         )}
       </View>
 
-      <Text
-        style={{
-          fontSize: 14,
-          color: colors.text,
-          marginBottom: 56,
-          marginTop: "auto",
-          fontWeight: "bold",
-        }}
-      >
-        უკვე რეგისტრირებული ხარ?
-      </Text>
+      {!isKeyboardVisible && (
+        <>
+          <Text
+            style={{
+              fontSize: 14,
+              color: colors.text,
+              marginBottom: 56,
+              marginTop: "auto",
+              fontWeight: "bold",
+            }}
+          >
+            უკვე რეგისტრირებული ხარ?
+          </Text>
 
-      <Link
-        style={{
-          fontSize: 14,
-          color: colors.primary,
-          fontWeight: "bold",
-        }}
-        href={"/auth/login"}
-      >
-        გაირე ავტორიზაცია
-      </Link>
+          <Link
+            style={{
+              fontSize: 14,
+              color: colors.primary,
+              fontWeight: "bold",
+            }}
+            href={"/auth/login"}
+          >
+            გაირე ავტორიზაცია
+          </Link>
+        </>
+      )}
     </KeyboardAwareScrollView>
   );
 }

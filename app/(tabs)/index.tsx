@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   qvevrebiWrapper: {
     display: "flex",
     flexDirection: "column",
-    marginTop: 28,
+    marginTop: 16,
     paddingHorizontal: 10,
     gap: 28,
   },

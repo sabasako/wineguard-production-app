@@ -17,6 +17,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { router } from "expo-router";
 import checkEmailPattern from "@/lib/checkEmailPattern";
 import { supabase } from "@/lib/supabase";
+import { CustomInput } from "@/components/auth/CustomInput";
 
 export default function PasswordReset() {
   const [email, setEmail] = useState("");
@@ -73,16 +74,13 @@ export default function PasswordReset() {
           პაროლის აღდგენა
         </Text>
 
-        <View style={styles.inputWrapper}>
-          <Entypo name="mail" size={24} color={colors.primary} />
-          <TextInput
-            style={styles.input}
-            placeholderTextColor={colors.primary}
-            placeholder="ელ-ფოსტა"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
+        <CustomInput
+          onChangeText={setEmail}
+          type="mail"
+          value={email}
+          placeholder="ელ-ფოსტა"
+          onSubmitEditing={handleResetPassword}
+        />
 
         <TouchableOpacity
           activeOpacity={0.8}
@@ -108,7 +106,7 @@ export default function PasswordReset() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 40,
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
@@ -130,11 +128,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 12,
     marginTop: 32,
-  },
-  input: {
-    height: 48,
-    paddingVertical: 12,
-    flex: 1,
   },
   button: {
     backgroundColor: colors.primary,
