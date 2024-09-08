@@ -1,6 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,20 +9,44 @@ import {
 } from "react-native";
 import colors from "../../constants/Colors";
 import QvevriItem from "@/components/QvevriItem";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import useGetAllQvevri from "@/hooks/useGetAllQvevri";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
   const [refresh, setRefresh] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { loading, qvevrebi } = useGetAllQvevri(refresh);
 
-  const handleRefresh = () => {
+  function handleRefresh() {
     setRefresh((prev) => !prev);
-  };
+  }
+
+  function onRefresh() {
+    setRefreshing(true);
+    handleRefresh();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      handleRefresh();
+    }, [])
+  );
 
   return (
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+    >
       <View style={styles.titleWrapper}>
         <Text style={styles.title}>ქვევრები</Text>
         <Link href={"/addQvevri"}>
@@ -44,7 +69,7 @@ export default function Home() {
             id={qvevri.qvevri_id}
             pressure={qvevri.no2}
             title={qvevri.title}
-            onDelete={handleRefresh}
+            refreshHome={handleRefresh}
           />
         ))}
       </View>
@@ -70,6 +95,7 @@ const styles = StyleSheet.create({
   qvevrebiWrapper: {
     display: "flex",
     flexDirection: "column",
+    marginTop: 28,
     paddingHorizontal: 10,
     gap: 28,
   },

@@ -18,17 +18,9 @@ export default function useGetAllQvevri(refresh: boolean) {
   useEffect(() => {
     async function fetchQvevrebi() {
       try {
-        // Postgre has policy to only allow users to see their own qvevrebi, so we don't need to get user id and then filter, data will already be filtered
+        // Postgres has policy to only allow users to see their own qvevrebi, so we don't need to get user id and then filter, data will already be filtered
 
-        // const {
-        //   data: { user },
-        // } = await supabase.auth.getUser();
-
-        // if (!user) {
-        //   Alert.alert("შეცდომა", "მომხმარებელი ვერ მოიძებნა");
-        //   return;
-        // }
-
+        // First we need all qvevri ids that belong to the user
         const { error: qvevriError, data: qvevriData } = await supabase
           .from("qvevrebi_users")
           .select("qvevri_id");
@@ -37,18 +29,19 @@ export default function useGetAllQvevri(refresh: boolean) {
           throw new Error(qvevriError.message);
         }
 
-        if (qvevriData.length === 0) {
-          return; // No qvevri_ids found, exit early
-        }
-
         // Extract qvevri_ids into an array
-        const qvevriIds = qvevriData.map((qvevri) => qvevri.qvevri_id);
+        let qvevriIds: string[] = [];
+        if (qvevriData.length > 0) {
+          qvevriIds = qvevriData.map((qvevri) => qvevri.qvevri_id);
+        }
 
         const { error: qvevriDataError, data: qvevriDataResult } =
           await supabase
             .from("qvevrebi_data")
             .select("*")
-            .in("qvevri_id", qvevriIds);
+            .in("qvevri_id", qvevriIds.length > 0 ? qvevriIds : [""])
+            .order("active", { ascending: false })
+            .order("title", { ascending: true });
 
         if (qvevriDataError) {
           throw new Error(qvevriDataError.message);

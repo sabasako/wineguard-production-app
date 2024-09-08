@@ -1,6 +1,14 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import colors from "../constants/Colors";
-import { Image, StyleSheet, Text, Vibration, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  Vibration,
+  View,
+} from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useRef, useState } from "react";
 import {
@@ -17,7 +25,7 @@ interface QvevriTitleProps {
   active: boolean;
   pressure: number;
   id: string;
-  onDelete: () => void;
+  refreshHome: () => void;
 }
 
 export default function QvevriItem({
@@ -25,19 +33,25 @@ export default function QvevriItem({
   active,
   pressure,
   id,
-  onDelete,
+  refreshHome,
 }: QvevriTitleProps) {
   const [isModalVisible, setModalVisible] = useState(false);
   const { deleteQvevri, loading } = useDeleteQvevri();
 
+  const shouldBeOptimal = active;
+
   const toggleModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setModalVisible(!isModalVisible);
   };
 
   const handleDelete = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    const success = await deleteQvevri(id);
     setModalVisible(false);
-    await deleteQvevri(id);
-    onDelete();
+    if (success) {
+      refreshHome();
+    }
   };
 
   const onSwipeableOpen = () => {
@@ -54,25 +68,31 @@ export default function QvevriItem({
     );
   };
 
+  function handleNavigation() {
+    router.push(`/qvevri/${id}`);
+  }
+
   return (
     <GestureHandlerRootView>
       <Swipeable
         renderRightActions={renderRightActions}
         onSwipeableOpen={onSwipeableOpen}
       >
-        <Link href={`/qvevri/${id}`} style={styles.container}>
+        <Pressable onPress={handleNavigation} style={styles.container}>
           <View style={styles.textCont}>
             <View
-              style={{
-                borderRadius: 16,
-                backgroundColor: colors.primary,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                flexWrap: "wrap",
-                padding: 5,
-                marginBottom: 12,
-              }}
+              style={[
+                {
+                  borderRadius: 16,
+                  backgroundColor: colors.primary,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  flexWrap: "wrap",
+                  padding: 5,
+                  marginBottom: 12,
+                },
+              ]}
             >
               <View
                 style={{
@@ -84,7 +104,7 @@ export default function QvevriItem({
                 }}
               />
               <Text style={styles.subtext}>
-                {active ? "ოპტიმალური" : "არაოპტიმალური"}
+                {shouldBeOptimal ? "ოპტიმალური" : "არაოპტიმალური"}
               </Text>
             </View>
             <Text style={styles.title}>
@@ -95,38 +115,48 @@ export default function QvevriItem({
               {title}
             </Text>
           </View>
-          <View style={styles.pressureWrapper}>
+          <View
+            style={{
+              marginLeft: "auto",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
             <Image
               source={require("../assets/images/Pressure.png")}
               style={{ width: 22, height: 22 }}
             />
-            <Text style={styles.title}>
+            <Text style={[styles.title, { marginLeft: 5 }]}>
               {Math.round(Number(pressure) * 10) / 10}
             </Text>
           </View>
-        </Link>
+        </Pressable>
       </Swipeable>
 
       <Modal
         isVisible={isModalVisible}
-        animationIn="slideInDown"
-        animationOut="slideOutUp"
+        animationIn="bounceIn"
+        animationOut="bounceOut"
         backdropTransitionOutTiming={0}
       >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalHeading}>დადასტურება</Text>
-          <Text style={styles.modalText}>
-            დარწმუნებული ხართ, რომ "{title}"-ის წაშლა გსურთ?
-          </Text>
-          <View style={styles.modalButtons}>
-            <Text style={styles.noButton} onPress={toggleModal}>
-              არა
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.primary} />
+        ) : (
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>დადასტურება</Text>
+            <Text style={styles.modalText}>
+              დარწმუნებული ხართ, რომ "{title}"-ის წაშლა გსურთ?
             </Text>
-            <Text style={styles.yesButton} onPress={handleDelete}>
-              კი, წაშალე!
-            </Text>
+            <View style={styles.modalButtons}>
+              <Text style={styles.noButton} onPress={toggleModal}>
+                არა
+              </Text>
+              <Text style={styles.yesButton} onPress={handleDelete}>
+                კი, წაშალე!
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </Modal>
     </GestureHandlerRootView>
   );
@@ -134,17 +164,14 @@ export default function QvevriItem({
 
 const styles = StyleSheet.create({
   container: {
-    // display: "flex",
-    position: "relative",
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
     width: "100%",
+    alignItems: "center",
     borderRadius: 16,
     backgroundColor: colors.tertiary,
-    borderColor: colors.primary,
+    flexDirection: "row",
     padding: 6,
     borderWidth: 3,
+    borderColor: colors.primary,
   },
   img: {
     width: 100,
@@ -153,6 +180,7 @@ const styles = StyleSheet.create({
   },
   textCont: {
     padding: 12,
+    marginRight: 90,
   },
   title: {
     fontSize: 18,
@@ -169,11 +197,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     fontWeight: "bold",
   },
-  pressureWrapper: {
-    flexDirection: "row",
+  specialCont: {
+    position: "absolute",
+    backgroundColor: colors.primary,
+    justifyContent: "center",
     alignItems: "center",
-    gap: 5,
+    paddingHorizontal: 5,
+    height: 20,
+    left: 8,
+    top: 8,
+    zIndex: 1,
+    alignSelf: "baseline",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.64)",
   },
+  specialTxtStyle: {
+    fontSize: 10,
+    color: colors.white,
+  },
+
   deleteButtonContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -236,15 +279,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 6,
-  },
-  statusContainer: {
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    flexWrap: "wrap",
-    padding: 5,
-    marginBottom: 12,
   },
 });
