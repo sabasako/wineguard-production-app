@@ -1,59 +1,55 @@
-import React, { useState } from "react";
 import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  View,
-  Alert,
-  TouchableOpacity,
-  Image,
-  Text,
-  Platform,
-  KeyboardAvoidingView,
   ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 import colors from "@/constants/Colors";
-import * as Linking from "expo-linking";
-import Entypo from "@expo/vector-icons/Entypo";
-import { router } from "expo-router";
-import checkEmailPattern from "@/lib/checkEmailPattern";
-import { supabase } from "@/lib/supabase";
+import { Platform } from "react-native";
 import { CustomInput } from "@/components/auth/CustomInput";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { router } from "expo-router";
 
-export default function PasswordReset() {
-  const [email, setEmail] = useState("");
+export default function passwordChange() {
+  const [password, setPassword] = useState("");
+  const [repeatedPassword, setRepeatedPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleResetPassword = async () => {
-    if (email && checkEmailPattern(email.trim())) {
+  async function handleResetPassword() {
+    try {
       setLoading(true);
-      try {
-        const resetPasswordURL = Linking.createURL("/auth/passwordChange");
-        console.log(resetPasswordURL);
 
-        const { error } = await supabase.auth.resetPasswordForEmail(
-          email.trim(),
-          {
-            redirectTo: resetPasswordURL,
-          }
-        );
-        if (error) throw error;
-        Alert.alert(
-          "პაროლის აღდგენა",
-          `პაროლის აღსადგენი ლინკი გაიგზავნა ${email.trim()} ელ ფოსტაზე`
-        );
-        router.push("/auth/login");
-      } catch (error: any) {
-        Alert.alert("შეცდომა", error.message);
-      } finally {
-        setLoading(false);
-      }
-    } else if (!email) {
-      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ ელ-ფოსტა");
-    } else {
-      Alert.alert("შეცდომა", "გთხოვთ შეიყვანოთ რეალური ელ-ფოსტა");
+      // Check user input
+      validateUserInput();
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw new Error(error.message);
+
+      Alert.alert("პაროლი წარმატებით შეიცვალა", "გთხოვთ გაიაროთ ავტორიზაცია!");
+      router.push("/auth/login");
+    } catch (err: any) {
+      Alert.alert("შეცდომა", err.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+
+  function validateUserInput() {
+    if (!password || !repeatedPassword) {
+      throw new Error("გთხოვთ შეავსოთ ყველა ველი");
+    }
+    if (password !== repeatedPassword) {
+      throw new Error("გთხოვთ შეიყვანოთ ერთიდაიგივე პაროლი!");
+    }
+    if (password.length < 6) {
+      throw new Error("პაროლი მინიმუმ 6 სიმბოლოსგან უნდა შედგებოდეს!");
+    }
+  }
 
   return (
     <KeyboardAvoidingView
@@ -82,10 +78,18 @@ export default function PasswordReset() {
         </Text>
 
         <CustomInput
-          onChangeText={setEmail}
-          type="mail"
-          value={email}
-          placeholder="ელ-ფოსტა"
+          onChangeText={setPassword}
+          type="password"
+          value={password}
+          placeholder="შეიყვანეთ ახალი პაროლი"
+          onSubmitEditing={handleResetPassword}
+        />
+
+        <CustomInput
+          onChangeText={setRepeatedPassword}
+          type="password"
+          value={repeatedPassword}
+          placeholder="გაიმეორეთ პაროლი"
           onSubmitEditing={handleResetPassword}
         />
 
@@ -93,7 +97,7 @@ export default function PasswordReset() {
           activeOpacity={0.8}
           style={styles.button}
           onPress={handleResetPassword}
-          disabled={loading}
+          // disabled={loading}
         >
           <Text style={styles.buttonText}>დადასტურება</Text>
         </TouchableOpacity>

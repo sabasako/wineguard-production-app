@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import colors from "@/constants/Colors";
 import { StatusBar } from "expo-status-bar";
-import { Link, router } from "expo-router";
+import { Link, router, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { CustomInput } from "@/components/auth/CustomInput";

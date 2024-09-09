@@ -49,6 +49,15 @@ export default function RootLayout() {
             headerBackTitleVisible: false,
           }}
         />
+        <Stack.Screen
+          name="auth/passwordChange"
+          options={{
+            headerShown: false,
+            title: "პაროლის აღდგენა",
+            headerTintColor: "#000",
+            headerBackTitleVisible: false,
+          }}
+        />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="qvevri/[id]"

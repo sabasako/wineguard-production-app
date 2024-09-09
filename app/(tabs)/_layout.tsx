@@ -1,14 +1,11 @@
-import { Redirect, router, Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
 import colors from "../../constants/Colors";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 export default function TabLayout() {
-  const [session, setSession] = useState<Session | null>(null);
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -16,11 +13,22 @@ export default function TabLayout() {
       }
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.replace("/auth/login");
       }
+
+      if (_event === "PASSWORD_RECOVERY") {
+        console.log("Password recovery detected");
+        router.push("/auth/passwordChange");
+      }
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
