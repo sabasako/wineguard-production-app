@@ -6,11 +6,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  Vibration,
   View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   GestureHandlerRootView,
   RectButton,
@@ -40,9 +39,14 @@ export default function QvevriItem({
 
   const shouldBeOptimal = active;
 
-  const toggleModal = () => {
+  const showModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    setModalVisible(!isModalVisible);
+    setModalVisible(true);
+  };
+
+  const hideModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setModalVisible(false);
   };
 
   const handleDelete = async () => {
@@ -61,7 +65,7 @@ export default function QvevriItem({
   const renderRightActions = () => {
     return (
       <Animated.View style={[styles.deleteButtonContainer]}>
-        <RectButton style={styles.deleteButton} onPress={toggleModal}>
+        <RectButton style={styles.deleteButton} onPress={showModal}>
           <Text style={styles.deleteButtonText}>წაშლა</Text>
         </RectButton>
       </Animated.View>
@@ -148,7 +152,7 @@ export default function QvevriItem({
               დარწმუნებული ხართ, რომ "{title}"-ის წაშლა გსურთ?
             </Text>
             <View style={styles.modalButtons}>
-              <Text style={styles.noButton} onPress={toggleModal}>
+              <Text style={styles.noButton} onPress={hideModal}>
                 არა
               </Text>
               <Text style={styles.yesButton} onPress={handleDelete}>

@@ -1,18 +1,10 @@
 import React, { useState } from "react";
 import {
-  ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
   ActivityIndicator,
-  Platform,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  View,
 } from "react-native";
 import colors from "../constants/Colors";
 import useAddQvevri from "@/hooks/useAddQvevri";

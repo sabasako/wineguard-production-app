@@ -51,6 +51,7 @@ export default function Register() {
         options: {
           data: {
             name: name.trim(),
+            first_login: true,
           },
         },
       });

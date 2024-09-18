@@ -59,7 +59,18 @@ export default function Login() {
       }
     }
     if (!error) {
-      router.replace("/");
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error(error);
+
+        router.replace("/");
+      }
+
+      if (data?.user?.user_metadata?.first_login) {
+        router.replace("/tutorial");
+      } else {
+        router.replace("/");
+      }
     }
     setLoading(false);
   }

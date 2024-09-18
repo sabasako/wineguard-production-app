@@ -79,6 +79,12 @@ export default function RootLayout() {
             headerBackTitleVisible: false,
           }}
         />
+        <Stack.Screen
+          name="tutorial"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </>
   );

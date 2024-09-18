@@ -18,6 +18,7 @@ export default function useGetAllQvevri(refresh: boolean) {
   useEffect(() => {
     async function fetchQvevrebi() {
       try {
+        setLoading(true);
         // Postgres has policy to only allow users to see their own qvevrebi, so we don't need to get user id and then filter, data will already be filtered
 
         // First we need all qvevri ids that belong to the user
